@@ -1,0 +1,17 @@
+train_net: "/scr/r6/tgebru/inverting_conv/caffe_invert_alexnet/timnit_models/att_conv1/timelapse_summer_winter/train_summer_winter.prototxt"
+test_net: "/scr/r6/tgebru/inverting_conv/caffe_invert_alexnet/timnit_models/att_conv1/timelapse_summer_winter/val_summer_winter.prototxt"
+test_iter: 1
+test_interval: 100
+base_lr:0.000000000001
+termination_criterion: MAX_ITER
+solver_mode: GPU
+lr_policy: "step"
+gamma: 1
+stepsize: 10000
+display: 1
+max_iter: 100000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 2000
+snapshot_prefix:"/scr/r6/tgebru/inverting_conv/caffe_invert_alexnet/timnit_models/att_conv1/timelapse_summer_winter/tiny/"
+

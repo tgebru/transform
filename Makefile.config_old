@@ -1,0 +1,50 @@
+## Refer to http://caffe.berkeleyvision.org/installation.html
+# Contributions simplifying and improving our build system are welcome!
+
+# CUDA directory contains bin/ and lib/ directories that we need.
+CUDA_DIR := /misc/software-lin/lmbsoft/cudatoolkit-5.5.22-x86_64
+#CUDA_DIR := /misc/software-lin/lmbsoft/cuda-6.5.11_rc
+
+# CUDA architecture setting: going with all of them.
+CUDA_ARCH := -gencode arch=compute_20,code=sm_20 \
+		-gencode arch=compute_20,code=sm_21 \
+		-gencode arch=compute_30,code=sm_30 \
+		-gencode arch=compute_35,code=sm_35
+# BLAS choice:
+# atlas for ATLAS (default)
+# mkl for MKL
+# open for OpenBlas
+BLAS := mkl
+# Custom (MKL/ATLAS/OpenBLAS) include and lib directories.
+# Leave commented to accept the defaults for your choice of BLAS
+# (which should work)!
+BLAS_INCLUDE := /home/dosovits/intel/mkl/include
+BLAS_LIB := /home/dosovits/intel/mkl/lib/intel64
+
+# This is required only if you will compile the matlab interface.
+# MATLAB directory should contain the mex binary in /bin.
+MATLAB_DIR := /misc/software-lin/matlabR2013a
+
+# NOTE: this is required only if you will compile the python interface.
+# We need to be able to find Python.h and numpy/arrayobject.h.
+# ANACONDA_PATH := /home/dosovits/Python/anaconda
+# PYTHON_INCLUDE := ${ANACONDA_PATH}/include \
+#         ${ANACONDA_PATH}/lib/python2.7/site-packages/numpy/core/include \
+#         ${ANACONDA_PATH}/include/python2.7 \
+# # We need to be able to find libpythonX.X.so or .dylib.
+# PYTHON_LIB := ${ANACONDA_PATH}/lib 
+
+# Whatever else you find you need goes here.
+INCLUDE_DIRS := $(PYTHON_INCLUDE) /usr/include /usr/local/include /home/dosovits/Programs/glog/include /home/dosovits/Programs/lmdb
+LIBRARY_DIRS := $(PYTHON_LIB) /usr/lib /usr/local/lib /home/dosovits/Programs/glog/lib /home/dosovits/Programs/lmdb
+
+
+
+BUILD_DIR := build
+DISTRIBUTE_DIR := distribute
+
+# Uncomment for debugging.
+# DEBUG := 1
+
+# The ID of the GPU that 'make runtest' will use to run unit tests.
+TEST_GPUID := 0

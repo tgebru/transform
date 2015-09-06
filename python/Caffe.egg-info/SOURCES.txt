@@ -1,0 +1,14 @@
+setup.py
+Caffe.egg-info/PKG-INFO
+Caffe.egg-info/SOURCES.txt
+Caffe.egg-info/dependency_links.txt
+Caffe.egg-info/top_level.txt
+caffe/__init__.py
+caffe/classifier.py
+caffe/detector.py
+caffe/draw.py
+caffe/io.py
+caffe/pycaffe.py
+caffe/proto/__init__.py
+caffe/proto/caffe_pb2.py
+caffe/proto/caffe_pretty_print_pb2.py

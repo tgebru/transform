@@ -1,0 +1,4 @@
+Log file created at: 2015/09/03 20:37:48
+Running on machine: tibet2
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+F0903 20:37:48.566812 19420 io.hpp:29] Check failed: ReadProtoFromTextFile(filename, proto) 

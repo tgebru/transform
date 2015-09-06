@@ -1,0 +1,112 @@
+How to generate/train a deconv network.
+---------------------------------------
+
+The idea is to start with an already trained network, chop of the softmax layer (or maybe even more ..), and then train a deconv net "on top".
+
+For this purpose two new layers were added: UnPooling and DeConvolution.
+They can be used to invert pooling and conv layers respectively. To invert regular fully connected layers we simply use a normal fully connected layer and transpose the weights.
+
+Once you have a trained network setting up the deconv net should be rather straightforward.
+Let's assume that we have a convnet that has the following definition:
+
+layers {
+  name: "conv1"
+  type: CONVOLUTION
+  bottom: "data"
+  top: "conv1"
+  blobs_lr: 1
+  blobs_lr: 2
+  convolution_param {
+    num_output: 32
+    pad: 2
+    kernel_size: 5
+    stride: 1
+  }
+}
+layers {
+  name: "pool1"
+  type: POOLING
+  bottom: "conv1"
+  top: "pool1"
+  top: "pool1_ind"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layers {
+  name: "ip1"
+  type: INNER_PRODUCT
+  bottom: "pool1"
+  top: "ip1"
+  blobs_lr: 1
+  blobs_lr: 2
+  weight_decay: 250
+  weight_decay: 0
+  inner_product_param {
+    num_output: 10
+  }
+}
+
+Note that the pooling layer has two top layers of which the second one will compute the indices!
+We can invert it by first computing the outputs of each fully connected layer (this could be done automatically but right now I rely on you doing it by hand... or using a script). In this case we only have one ... lets call it #ip1_out .
+We then also need to figure out the height and width as well as the number of channels of the input to each convolutional layer. In our case this would be the input dimensions (which we will call #data_height, #data_width) and 3 channels (for RGB).
+
+ simply appending the following layers:
+layers {
+  name: "invip1"
+  type: INNER_PRODUCT
+  bottom: "ip1"
+  top: "invip1"
+  blobs_lr: 1
+  blobs_lr: 2
+  weight_decay: 250
+  weight_decay: 0
+  inner_product_param {
+    num_output: #ip1_out
+  }
+}
+layers {
+  name: "unpool1"
+  type: UNPOOLING
+  bottom: "pool1"
+  bottom: "pool1_ind"
+  top: "unpool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layers {
+  name: "deconv1"
+  type: DECONVOLUTION
+  bottom: "unpool1"
+  top: "deconv1"
+  blobs_lr: 1
+  blobs_lr: 2
+  deconvolution_param {
+    output_channels: 3
+    output_height: #data_height
+    output_width: #data_width
+    pad: 2
+    kernel_size: 5
+    stride: 1
+  }
+}
+
+And that should give us a complete deconv network. Note that there is no weight tieing between any layer and its inverse! This makes my implementation pretty useless if you want to train a deconv net from scratch, but should allow you to train one based on an already trained encoder. 
+Now if you want to train this network you can simply go ahead and take an appropriate loss (e.g. look at the euclidean loss). 
+WARNING: Simply training with the complete network will adapt ALL LAYERS, since you probably don't want to do that you need to set blobs_lr to 0 for all layers that you do not want to train!
+
+For a few in-code examples of how to setup deconv layers and unpooling layers look at the tests in test_deconvolutional_layer.cpp and test_unpooling_layer.cpp
+
+IMPORTANT concerns:
+-------------------
+Since you probably don't want to start from scratch when training the deconv net you have to write a little bit of code to initialize the deconvolutional part of the network (i.e. the inverse layers) with the weights from the upward pass! If you are unsure how to achieve that just let me know which network you want to use and I'll try to help you get that working.
+Similarly for the last deconv layer where you would want to output depth values you could either init the weights randomly or convert the weights from the first conv layer to grayscale.
+
+The deconvolution layer currently does not take biases into account! That should be fine except maybe for the bottom layer. Since you want to reproduce depth values at this point this could potentially be a problem. I would suggest simply making sure that your data is zero mean for a first test. Another option would be to not use a deconvolutional layer as the last layer but rather to specify a simple convolutional layer that then outputs an image (or maybe use a fully connected layer at that point). 
+
+Another thing that I would suggest you could try and is super easy to run is to not use a deconv-net but simply add a few fully connected layers (maybe start with one large one) that get input from several points from the encoder net and directly predict depth values (that would be similar to what you have already tried with the SVM but you could backprop to and adapt the whole network).
